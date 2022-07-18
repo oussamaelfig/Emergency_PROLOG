@@ -20,3 +20,5 @@ p_sort(PairsUnsorted, List) :-
     bagof(K-P, key_value(K, P), PairsUnsorted),
     keysort(PairsUnsorted, PairsSorted),
     pairs_values(PairsSorted, List).
+
+%to exectue : p_sort(Unsorted, Sorted), maplist(writeln, Sorted).
