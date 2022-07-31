@@ -5,11 +5,20 @@ tempsConsultation( 15 ).
 
 
 
+% Sorted est la liste des patient ordonnée
+% T est la liste des patient splited 
+% [[patient(204,4,2),patient(203,3,2),patient(202,2,2),patient(201,1,2)],[patient(304,8,3),patient(303,7,3),patient(302,6,3),patient(301,5,3)],[patient(404,12,4),patient(403,11,4),patient(402,10,4),patient(401,9,4)],[patient(504,16,5),patient(503,15,5),patient(502,14,5),patient(501,13,5)]]
+
 
 resoudre( NomFichier ) :-    
     p_sort(Unsorted, Sorted),
     forall(member(patient(X, Y, Z), Sorted),
-    format('~w ~w ~w~n', [X, Y, Z])).
+    format('~w ~w ~w~n', [X, Y, Z])),
+    findall(I, (member(A, Sorted), arg(3, A, I)), Is),
+    sort(Is, Js),
+    findall(S, (member(J, Js), findall(P, (member(P, Sorted), arg(3, P, J)), S)), T),
+    write(T).
+    
     
 
 
@@ -50,6 +59,8 @@ p_sort(PairsUnsorted, List) :-
     pairs_values(PairsSorted, List).
 
 %to exectue : p_sort(Unsorted, Sorted), maplist(writeln, Sorted).
+
+
 
 priorite2(15).
 priorite3(30).
