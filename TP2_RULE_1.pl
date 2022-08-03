@@ -2,45 +2,11 @@
 :- dynamic tempsConsultation/1.
 :- use_module(library(lists)).
 
-
+%Temps de consultation
 tempsConsultation( 15 ).
 
 
-
-
-resoudre( NomFichier ) :-    
-    p_sort(Unsorted, Sorted),
-    forall(member(patient(X, Y, Z), Sorted),
-    format('~w ~w ~w~n', [X, Y, Z])),
-    affFractileMoyenne(Sorted, ListeFractile, MoyenneArit),
-    writeln('-----------'),
-    maplist(writeln, ListeFractile),
-    writeln(MoyenneArit).
-    
-
-
-
-%[patient(201, 4, 2 ), patient(202, 3, 2 ), patient(203, 2, 3 ), patient(204, 1, 3 ), patient(204 , 1, 4 ),patient(203, 2, 4 ), patient(204, 1, 5 ),patient(204, 1, 5 )]
-
-affFractileMoyenne(SortedList, ListeFractile, MoyenneArit):-
-    tempsConsultation(X),
-    listeATempsEtRetards(X, SortedList, ListeEtat, 0),
-    count_occurrences(ListeEtat, NbPatientAtempsParPrio),
-    count_occurrences_all(ListeEtat, NbPatientParPrio),
-    maplist(fractile, NbPatientAtempsParPrio, NbPatientParPrio, ListeFractile),
-    moyenne(ListeFractile, MoyenneArit).
-    
-
-
-    % consult( NomFichier ),
-    % findall(patient(X,Y,Z),
-    % patient(X,Y,Z), Ps),
-    % sort(3, @=<, Ps, Result),
-    % forall(order_by([asc(Z)],
-    % patient(X,Y,Z)),
-    % format("~w ~w ~w~n", [X,Y,Z])).
-    
-
+% Liste des patients
 patient( 201, 1, 2 ).
 patient( 202, 2, 2 ).
 patient( 203, 3, 2 ).
@@ -59,16 +25,57 @@ patient( 503, 15, 5 ).
 patient( 504, 16, 5 ).
 
 
+%Prédicat général
+resoudre( NomFichier ) :-    
+    patient_ordon(NonOrdon, Ordonne),
+    forall(member(patient(X, Y, Z), Ordonne),
+    format('~w ~w ~w~n', [X, Y, Z])),
+    affFractileMoyenne(Ordonne, ListeFractile, MoyenneArit),
+    writeln('-----------'),
+    maplist(writeln, ListeFractile),
+    writeln(MoyenneArit).
+    
+
+
+
+%[patient(201, 4, 2 ), patient(202, 3, 2 ), patient(203, 2, 3 ), patient(204, 1, 3 ), patient(204 , 1, 4 ),patient(203, 2, 4 ), patient(204, 1, 5 ),patient(204, 1, 5 )]
+
+% Le prédicat suivant prend une liste de patient ordonné selon la première régle, et retourne la liste des fractile ainsi que la moyenne arithmétique
+% le prédicat transforme la liste en une liste decrivant l'état de chque patient est ce qu'il est à temps ou en retards,
+% On compte le nombre de patient arrivé à temps par priorité
+% On compte le nombre de patient par priorité
+% On calcul les fractiles en divisant les patient à temps par prio sur le nombre de patient par prio
+% On calcul la moyenne géométrique à partir de la liste des fractiles
+affFractileMoyenne(SortedList, ListeFractile, MoyenneArit):-
+    tempsConsultation(X),
+    listeATempsEtRetards(X, SortedList, ListeEtat, 0),
+    count_occurrences(ListeEtat, NbPatientAtempsParPrio),
+    count_occurrences_all(ListeEtat, NbPatientParPrio),
+    maplist(fractile, NbPatientAtempsParPrio, NbPatientParPrio, ListeFractile),
+    moyenne(ListeFractile, MoyenneArit).
+    
+
+
+    % consult( NomFichier ),
+    % findall(patient(X,Y,Z),
+    % patient(X,Y,Z), Ps),
+    % sort(3, @=<, Ps, Result),
+    % forall(order_by([asc(Z)],
+    % patient(X,Y,Z)),
+    % format("~w ~w ~w~n", [X,Y,Z])).
+
+% Première régle :
+% ordonner les prédicats patients selon la première régles et le retourner sous forme de liste
 key_value(k(C,NegB), patient(A,B,C)) :-
     patient(A, B, C),
     NegB is -B.
 
-p_sort(PairsUnsorted, List) :-
-    bagof(K-P, key_value(K, P), PairsUnsorted),
-    keysort(PairsUnsorted, PairsSorted),
-    pairs_values(PairsSorted, List).
+patient_ordon(PairesNonOrdon, List) :-
+    bagof(K-P, key_value(K, P), PairesNonOrdon),
+    keysort(PairesNonOrdon, PairesOrdon),
+    pairs_values(PairesOrdon, List).
 
-%to exectue : p_sort(Unsorted, Sorted), maplist(writeln, Sorted).
+%to exectue : patient_ordon(Unsorted, Sorted), maplist(writeln, Sorted).
 
 % priorite2(15).
 % priorite3(30).
@@ -80,15 +87,18 @@ trouveIndex(Elem, [Elem|_], 0).
 trouveIndex(Elem, [_|Reste], Index) :-
     trouveIndex(Elem, Reste, ResteIndex), Index is ResteIndex + 1.
 
+% pour chaque patient à priorité lui associer son temps d'attente maximum
 trouveMaxAttente(patient(_, _, 2), 15).
 trouveMaxAttente(patient(_, _, 3), 30).
 trouveMaxAttente(patient(_, _, 4), 60).
 trouveMaxAttente(patient(_, _, 5), 120).
 
+% Trouver les patients à temps en se basant sur le temps d'attente mnaximum et le temps attendu
 patientPassATemps(patient(A, B, C, aTemps), Index, TempsConsultation) :-  
     trouveMaxAttente(patient(A, B, C), Max),
     Attente is TempsConsultation * Index + B,
     Attente =< Max.
+% Trouver les patients en retards en se basant sur le temps d'attente mnaximum et le temps attendu
 patientPassATemps(patient(A, B, C, retard), Index, TempsConsultation) :- 
     trouveMaxAttente(patient(A, B, C), Max),
     Attente is TempsConsultation * Index + B,
@@ -101,9 +111,11 @@ listeATempsEtRetards(TmpsCons, [Debut|Suite], [DebutP|SuiteP]) :-
     listeATempsEtRetards(TmpsCons, [Debut], [DebutP]),
     listeATempsEtRetards(TmpsCons, Suite, SuiteP).*/
 
+% traduire le prédicat patient de 3 arguments à 4 argument en ajoutant l'etat du patient
 traductionPatient(patient(A, B, C), patient(A, B, C, Pass), Index, TCons) :-
     patientPassATemps(patient(A, B, C, Pass), Index, TCons).
 
+% prédicat qui prends la liste des patients et retourne une liste des patient avec leur état (à temps ou en retards)
 listeATempsEtRetards(_, [], [], _).
 listeATempsEtRetards(TCons, [Debut|Suite], [DebutP|SuiteP], Index) :-
     traductionPatient(Debut, DebutP, Index, TCons),
@@ -120,7 +132,7 @@ listeATempsEtRetards(TCons, [Debut|Suite], [DebutP|SuiteP], Index) :-
 
 /**nbrPatientPrio(LaListe, NbrATempsPrio, NbrPatPrio).*/
 
-%tu lui donne la liste des patients avec leur état à temps ou en retards puis il retourne combien de patient à temps par priorité
+% prédicat qui prends la liste des patients avec leur état à temps ou en retards puis il retourne combien de patient à temps par priorité
 count_occurrences(ListP,CountInTime) :-
     map_list_to_pairs(arg(3),ListP,Keyed),
     group_pairs_by_key(Keyed,Grouped),
@@ -130,7 +142,7 @@ count_occurrences(ListP,CountInTime) :-
             ),CountInTime).
 
 
-%t u lui passe la liste des patients pusi il te retourne le nombre de patient par priorité
+% prédicat qui prends la liste des patients puis il retourne le nombre de patient par priorité
 count_occurrences_all(ListP,Counted) :-
     map_list_to_pairs(arg(3),ListP,Keyed),
     group_pairs_by_key(Keyed,Grouped),
@@ -140,11 +152,11 @@ count_occurrences_all(ListP,Counted) :-
             ),Counted).
 
 
-% calcul les fractiles des deux listes (liste des patient à temps avec la liste de nbr de patient par prio)
+% calcul les fractiles à partir des deux listes (liste des patient à temps avec la liste de nbr de patient par prio)
 fractile([_,X], [_,Y], Z) :- Z is X/Y.
 
 
-%calcul la moyenne arithmetique
+% Pérdicat qui calcul la moyenne arithmétique d'une liste
 moyenne( List, Avg ):-
     sumlist( List, Sum ),
     length( List, Length),
