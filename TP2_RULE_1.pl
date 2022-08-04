@@ -8,34 +8,27 @@ tempsConsultation( 15 ).
 
 % Liste des patients
 patient( 201, 1, 2 ).
-patient( 202, 2, 2 ).
-patient( 203, 3, 2 ).
-patient( 204, 4, 2 ).
-patient( 301, 5, 3 ).
-patient( 302, 6, 3 ).
-patient( 303, 7, 3 ).
-patient( 304, 8, 3 ).
-patient( 401, 9, 4 ).
-patient( 402, 10, 4 ).
-patient( 403, 11, 4 ).
-patient( 404, 12, 4 ).
-patient( 501, 13, 5 ).
-patient( 502, 14, 5 ).
-patient( 503, 15, 5 ).
-patient( 504, 16, 5 ).
+patient( 401, 1, 4 ).
+patient( 501, 1, 5 ).
 
 
 %Prédicat général
 resoudre( NomFichier ) :-    
     patient_ordon(NonOrdon, Ordonne),
-    forall(member(patient(X, Y, Z), Ordonne),
-    format('~w ~w ~w~n', [X, Y, Z])),
+    forall(member(patient(X, Y, Z), Ordonne),format('~w ~w~n', [X, Z])),
     affFractileMoyenne(Ordonne, ListeFractile, MoyenneArit),
-    writeln('-----------'),
-    maplist(writeln, ListeFractile),
+    writeln('--------'),
+    forall(member(fract(A, B), ListeFractile),format('~w ~w~n', [A, B])),
+    maplist(writeln, Answer),
     writeln(MoyenneArit).
     
 
+% test(List,Indices,Pairs):-
+%     length(List, LLen),
+%     End is LLen + 1,
+%     numlist(2, End, Indices),
+%     pairs_keys_values(Pairs, Indices, List),
+%     maplist(writeln, Indices List),
 
 
 %[patient(201, 4, 2 ), patient(202, 3, 2 ), patient(203, 2, 3 ), patient(204, 1, 3 ), patient(204 , 1, 4 ),patient(203, 2, 4 ), patient(204, 1, 5 ),patient(204, 1, 5 )]
@@ -52,7 +45,8 @@ affFractileMoyenne(SortedList, ListeFractile, MoyenneArit):-
     count_occurrences(ListeEtat, NbPatientAtempsParPrio),
     count_occurrences_all(ListeEtat, NbPatientParPrio),
     maplist(fractile, NbPatientAtempsParPrio, NbPatientParPrio, ListeFractile),
-    moyenne(ListeFractile, MoyenneArit).
+    rawFractileListe(ListeFractile,RawListeFractile),
+    moyenne(RawListeFractile, MoyenneArit).
     
 
 
@@ -151,10 +145,11 @@ count_occurrences_all(ListP,Counted) :-
                 length(L,N)
             ),Counted).
 
-
 % calcul les fractiles à partir des deux listes (liste des patient à temps avec la liste de nbr de patient par prio)
-fractile([_,X], [_,Y], Z) :- Z is X/Y.
+fractile([patient(_,_,Prio,_),X], [patient(_,_,Prio,_),Y], fract(Prio,Z)) :- Z is X/Y.
 
+rawFractile(fract(_,Z),Z).
+rawFractileListe(ListeFractile,ListeRawFractile):- maplist(rawFractile,ListeFractile,ListeRawFractile).
 
 % Pérdicat qui calcul la moyenne arithmétique d'une liste
 moyenne( List, Avg ):-
