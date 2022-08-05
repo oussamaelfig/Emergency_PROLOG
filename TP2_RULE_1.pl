@@ -8,6 +8,7 @@ tempsConsultation( 6 ).
 %[patient( 204, 4, 2 ),patient( 203, 3, 2 ),patient( 202, 2, 2 ),patient( 304, 8, 3 ),patient( 404, 12, 4 ),patient( 403, 11, 4 ),patient( 401, 9, 4 ),patient( 402, 10, 4 ),patient( 401, 9, 4 ),patient( 504, 16, 5 ),patient( 503, 15, 5 ),patient( 502, 14, 5 ),patient( 501, 13, 5 ),patient( 201, 1, 2 ),patient( 303, 7, 3 ),patient( 302, 6, 3 ),patient( 301, 5, 3 )]
 
 % Liste des patients
+
 patient( 201, 1, 2 ).
 patient( 202, 2, 2 ).
 patient( 203, 3, 2 ).
